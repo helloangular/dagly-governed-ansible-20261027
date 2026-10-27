@@ -1,0 +1,20 @@
+---
+# Deploys by the immutable digest Dagly passes (helio_artifact_uri); never by tag.
+- hosts: "{{ app_inventory_group }}"
+  gather_facts: false
+  tasks:
+    - name: Refuse without the immutable artifact
+      ansible.builtin.assert:
+        that:
+          - helio_artifact_uri is defined
+          - helio_artifact_uri is search('@sha256:[a-f0-9]{64}$')
+    - name: Pull by digest
+      ansible.builtin.command: docker pull {{ helio_artifact_uri }}
+    - name: Remove the previous container
+      ansible.builtin.command: docker rm -f {{ target_container }}
+      failed_when: false
+    - name: Run the artifact
+      ansible.builtin.command: >-
+        docker run -d --name {{ target_container }} --label dagly.live=1
+        --label helio.deploy_env={{ deploy_env }} --label app.version={{ app_version }}
+        {{ helio_artifact_uri }}

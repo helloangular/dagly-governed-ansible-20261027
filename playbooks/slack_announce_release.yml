@@ -1,0 +1,7 @@
+---
+# Sandbox stand-in for the release announcement: logs only.
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    - ansible.builtin.debug:
+        msg: "{{ app_inventory_group_name }} {{ app_version }} {{ release_status }}"
